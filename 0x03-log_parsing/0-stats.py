@@ -1,39 +1,46 @@
 #!/usr/bin/python3
-"""
-Log parsing
-"""
+
+"""Import some modules"""
 
 import sys
 
-if __name__ == '__main__':
+"""create a function that takes file size and status"""
 
-    filesize, count = 0, 0
-    codes = ["200", "301", "400", "401", "403", "404", "405", "500"]
-    stats = {k: 0 for k in codes}
 
-    def print_stats(stats: dict, file_size: int) -> None:
-        print("File size: {:d}".format(filesize))
-        for k, v in sorted(stats.items()):
-            if v:
-                print("{}: {}".format(k, v))
+def _print(total_file_size, status):
+    """function to print total file size and status codes"""
+    print("File size: {:d}".format(total_file_size))
+    for key, value in sorted(statuses.items()):
+        if value != 0:
+            print("{}: {}".format(key, value))
 
-    try:
-        for line in sys.stdin:
+
+statuses = {
+        '200': 0, '301': 0,
+        '400': 0, '401': 0, '403': 0, '404': 0, '405': 0, '500': 0}
+
+total_file_size = 0
+count = 0
+try:
+    for line in sys.stdin:
+        args = line.split()
+
+        if len(args) > 2:
+            status_code = args[-2]
+            file_size = int(args[-1])
+
+            if status_code in statuses:
+                statuses[status_code] += 1
+
+            total_file_size += file_size
             count += 1
-            data = line.split()
-            try:
-                status_code = data[-2]
-                if status_code in stats:
-                    stats[status_code] += 1
-            except BaseException:
-                pass
-            try:
-                filesize += int(data[-1])
-            except BaseException:
-                pass
-            if count % 10 == 0:
-                print_stats(stats, filesize)
-        print_stats(stats, filesize)
-    except KeyboardInterrupt:
-        print_stats(stats, filesize)
-        raise
+
+            if count == 10:
+                _print(total_file_size, statuses)
+                count = 0
+
+except KeyboardInterrupt:
+    pass
+
+finally:
+    _print(total_file_size, statuses)
