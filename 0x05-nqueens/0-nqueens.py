@@ -1,54 +1,76 @@
 #!/usr/bin/python3
-"""
-N queens
-"""
+
+"""import sys module"""
 
 import sys
 
-if len(sys.argv) != 2:
-    print('Usage: nqueens N')
-    exit(1)
 
-try:
-    n_q = int(sys.argv[1])
-except ValueError:
-    print('N must ba a number')
-    exit(1)
-
-if n_q < 4:
-    print('N must ba at least 4')
-    exit(1)
+"""create a function"""
 
 
-def solve_nqueens(n):
-    ''' self descriptive '''
-    if n == 0:
-        return [[]]
-    inner_solution = solve_nqueens(n - 1)
-    return [solution + [(n, i + 1)]
-            for i in range(n_q)
-            for solution in inner_solution
-            if safe_queen((n, i + 1), solution)]
+def print_solution(solutions):
+    """function takes a list of solutions where each solution
+    is represented as a list of [row, column] pairs
+    indicating the positions of the queens on the chessboard.
+    """
+    for solution in solutions:
+        print(solution)
 
 
-def attack_queen(square, queen):
-    '''self descriptive'''
-    (row1, col1) = square
-    (row2, col2) = queen
-    return (row1 == row2) or (col1 == col2) or\
-        abs(row1 - row2) == abs(col1 - col2)
-
-
-def safe_queen(sqr, queens):
-    '''self descriptive'''
-    for queen in queens:
-        if attack_queen(sqr, queen):
+def is_safe(board, row, col, n):
+    """This function determines if it's safe to place
+    a queen at the board position [row, col]
+    """
+    for i in range(col):
+        if board[row][i] == 1:
             return False
+
+    """Check upper diagonal on left side"""
+    for i, j in zip(range(row, -1, -1), range(col, -1, -1)):
+        if board[i][j] == 1:
+            return False
+
+    """Check lower diagonal on left side"""
+    for i, j in zip(range(row, n, 1), range(col, -1, -1)):
+        if board[i][j] == 1:
+            return False
+
     return True
 
 
-for answer in reversed(solve_nqueens(n_q)):
-    result = []
-    for p in [list(p) for p in answer]:
-        result.append([i - 1 for i in p])
-    print(result)
+def solve_n_queens(board, col, n, solutions):
+    """recursive function attempts to solve the N-Queens problem"""
+    if col >= n:
+        solutions.append([[i, row.index(1)] for i, row in enumerate(board)])
+        return
+
+    for i in range(n):
+        if is_safe(board, i, col, n):
+            board[i][col] = 1
+            solve_n_queens(board, col + 1, n, solutions)
+            board[i][col] = 0  # backtrack
+
+
+def nqueens(n):
+    """main function that sets up the board
+    and calls the backtracking solver function
+    """
+    board = [[0 for _ in range(n)] for _ in range(n)]
+    solutions = []
+    solve_n_queens(board, 0, n, solutions)
+    print_solution(solutions)
+
+
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Usage: nqueens N")
+        sys.exit(1)
+    try:
+        n = int(sys.argv[1])
+    except ValueError:
+        print("N must be a number")
+        sys.exit(1)
+    if n < 4:
+        print("N must be at least 4")
+        sys.exit(1)
+    nqueens(n)
