@@ -23,3 +23,17 @@ if (process.argv.length > 2) {
           });
         });
       });
+
+
+	     Promise.all(characterPromises)
+        .then(names => {
+          names.forEach(name => console.log(name));
+        })
+        .catch(error => console.error(error));
+    } else {
+      console.error(`Failed to get film data: Status code ${response.statusCode}`);
+    }
+  });
+} else {
+  console.log('Usage: ./script.js <movie_id>');
+}
