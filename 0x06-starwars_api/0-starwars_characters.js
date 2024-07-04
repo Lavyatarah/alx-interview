@@ -1,37 +1,35 @@
-#!/usr/bin/node
+import sys
+import requests
 
-const request = require('request');
-const API_URL = 'https://swapi-api.alx-tools.com/api';
+def fetch_movie_characters(movie_id):
+    # Base URL for the Star Wars API
+    base_url = "https://swapi.dev/api/films/"
+    
+    # Fetch movie details
+    response = requests.get(f"{base_url}{movie_id}/")
+    
+    if response.status_code != 200:
+        print(f"Failed to fetch movie with ID {movie_id}")
+        return
+    
+    movie_data = response.json()
+    
+    # Iterate over the list of character URLs
+    for character_url in movie_data['characters']:
+        character_response = requests.get(character_url)
+        
+        if character_response.status_code != 200:
+            print(f"Failed to fetch character details from {character_url}")
+            continue
+        
+        character_data = character_response.json()
+        print(character_data['name'])
 
-if (process.argv.length > 2) {
-  const movieId = process.argv[2];
-  request(`${API_URL}/films/${movieId}/`, (err, response, body) => {
-    if (err) {
-      return console.error(err);
-    }
-    if (response.statusCode === 200) {
-      const charactersURLs = JSON.parse(body).characters;
-      const characterPromises = charactersURLs.map(url => {
-        return new Promise((resolve, reject) => {
-          request(url, (error, res, charBody) => {
-            if (error) {
-              reject(error);
-            } else {
-              resolve(JSON.parse(charBody).name);
-            }
-          });
-        });
-      });
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Usage: python script.py <Movie ID>")
+        sys.exit(1)
+    
+    movie_id = sys.argv[1]
+    fetch_movie_characters(movie_id)
 
-      Promise.all(characterPromises)
-        .then(names => {
-          names.forEach(name => console.log(name));
-        })
-        .catch(error => console.error(error));
-    } else {
-      console.error(`Failed to get film data: Status code ${response.statusCode}`);
-    }
-  });
-} else {
-  console.log('Usage: ./script.js <movie_id>');
-}
